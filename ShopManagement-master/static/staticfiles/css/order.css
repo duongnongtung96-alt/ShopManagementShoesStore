@@ -1,0 +1,145 @@
+body {
+    background: url("../images/products_bg.png") fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.container-fluid {
+    width: 90%;
+}
+
+.order-title {
+    background: #111827;
+    border: 1px solid #374151;
+}
+
+.order-title p {
+    margin: 0;
+    font-size: 1rem;
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+a {
+    color: inherit;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.order-title,
+.order-item {
+    display: grid;
+    grid-template-columns: 1fr 3fr 4fr 2fr 2fr 2fr;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 2px 6px rgba(148, 163, 184, 0.08);
+}
+
+.order-title {
+    background: #111827;
+    border-color: #374151;
+}
+
+.order-item:hover {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.order-title > div,
+.order-item > div {
+    padding: 0.75rem 0.75rem;
+}
+
+.order-item p {
+    margin: 0;
+    color: #111827;
+}
+
+.order-title p {
+    margin: 0;
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+.order-id {
+    color: #111827;
+    font-weight: 700;
+    padding: 0.35rem 0;
+}
+
+.order-customer {
+    color: #111827;
+    font-weight: 700;
+    padding: 0.35rem 0;
+    line-height: 1.4;
+}
+
+.order-phone {
+    display: block;
+    color: #111827;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.order-address {
+    color: #111827;
+    font-weight: 600;
+    padding: 0.35rem 0;
+    line-height: 1.4;
+}
+
+.order-price {
+    color: #111827;
+    font-weight: 700;
+    padding: 0.35rem 0;
+    text-align: center;
+}
+
+.order-item .text-success,
+.order-item .text-warning,
+.order-item .text-danger {
+    margin: 0;
+    padding: 0.5rem 0.35rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    background: transparent;
+    color: inherit;
+}
+
+.order-item .text-success {
+    color: #10b981;
+}
+
+.order-item .text-warning {
+    color: #f59e0b;
+}
+
+.order-item .text-danger {
+    color: #ef4444;
+}
+
+@media (max-width: 991px) {
+    .order-title,
+    .order-item {
+        grid-template-columns: 1fr;
+    }
+
+    .order-title > div,
+    .order-item > div {
+        border-left: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .order-item .order-customer,
+    .order-item .order-address,
+    .order-item .order-price,
+    .order-item .order-id {
+        font-size: 0.95rem;
+    }
+}

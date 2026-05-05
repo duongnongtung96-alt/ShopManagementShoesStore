@@ -1,0 +1,140 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+
+{% block title_extend %}Cửa Hàng Giày - Sản Phẩm{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/product.css' %}">
+{% endblock %}
+
+{% block content %}
+        <!-- Clear input choice if enter products/ (without filter request) -->
+        {% if request.path == '/products/' %}
+            <script>
+                localStorage.removeItem("filter");
+                localStorage.removeItem("sort");
+            </script>
+        {% endif %}
+
+        <div class="container-fluid mt-5 pt-3">
+            <section id="header">
+                <h1 class="text-light pl-5">Sản Phẩm <i class="fas fa-store-alt"></i></h1>
+                <hr class="my-4 border-light">
+            </section>
+
+            <section id="products_filter">
+                <div class="row mx-5 my-2 rounded rounded-lg">
+                    <form id="advanced-filter" class="form-inline my-2 my-lg-0" action="/products/search">
+                        <div class="form-group bg-success text-light mr-2 p-2 rounded rounded-lg">
+                            <label for="pname" class="font-weight-bold mx-sm-2"><span class="text-dark">Tìm Kiếm: </span></label>
+                            <input id="pname" class="form-control mr-sm-2" name="pname" type="search" placeholder="Tìm Kiếm" aria-label="Search">
+                        </div>
+            
+                        <div id="filter" class="form-group bg-success text-light mx-2 p-2 rounded rounded-lg">
+                            <label for="filter" class="font-weight-bold mx-sm-2"><span class="text-dark">Lọc: </span></label>
+                            <input id="filter0" class="form-control mx-sm-2" type="radio" name="filter" value="">Không
+                            <input id="filter1" class="form-control mx-sm-2" type="radio" name="filter" value="avail">Có Sẵn
+                            <input id="filter2" class="form-control mx-sm-2" type="radio" name="filter" value="sold-out">Hết Hàng
+                        </div>
+
+                        <div id="sort" class="form-group bg-success text-light mx-2 p-2 rounded rounded-lg">
+                            <label for="sort" class="font-weight-bold mx-sm-2"><span class="text-dark">Sắp Xếp Theo: </span></label>
+                            <input id="sort0" class="form-control mx-sm-2" type="radio" name="sort" value=""> Không
+                            <input id="sort1" class="form-control mx-sm-2" type="radio" name="sort" value="name-a-to-z"> A-Z
+                            <input id="sort2" class="form-control mx-sm-2" type="radio" name="sort" value="name-z-to-a"> Z-A
+                            <input id="sort3" class="form-control mx-sm-2" type="radio" name="sort" value="price-up"> Giá Tăng
+                            <input id="sort4" class="form-control mx-sm-2" type="radio" name="sort" value="price-down"> Giá Giảm
+                        </div>
+                        
+                        <button class="btn btn-warning m-sm-2" type="submit"><i class="fas fa-filter fa-fw"></i> Áp Dụng</button></a>
+                    </form>
+                </div>
+            </section>
+
+            <section id="products_list">
+                {% if count %}
+                    <div class="row ml-5">
+                        <h5 class="text-light p-2 bg-info rounded rounded-lg"><i class="fas fa-info-circle"></i> Hiển Thị <span class="text-dark">{{count}}</span> sản phẩm.</h4>
+                    </div>
+                {% else %}
+                    <div class="row justify-content-center my-5">
+                        <h3 class="text-light">Không có kết quả....Trống trơn....<h5>
+                    </div>
+                    <div class="row justify-content-center my-5">
+                        <img src="https://i.imgur.com/l8lNhIC.jpg" class="img-thumbnail" alt="...">
+                    </div>
+                {% endif %}
+
+                <div class="row justify-content-center">
+                    {% for product in products %}
+                    <div class="col-lg-3 col-md-4 col-sm-6 col-12 my-3">
+                        <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                            {# Use default image if product image not provided #}
+                            {% if product.product_image %}
+                                <img src="{{product.product_image.url}}" class="img-thumbnail card-img-top" alt="...">
+                            {% else %}
+                                <img src="{% static 'images/shop_logo.png' %}" class="img-thumbnail card-img-top" alt="...">
+                            {% endif %}
+                            <div class="card-body bg-dark d-flex flex-column justify-content-between">
+                                <h5 class="card-title text-light font-weight-bold">{{product.product_name}}</h5>
+                                <p class="card-text text-light">Giá: <span class="text-info">{{product.sell_price|vnd}}</span></p>
+                                <div class="mt-auto">
+                                    <a href="/products/viewproduct/{{product.product_id}}" class="btn btn-primary mb-2">Xem <i class="fas fa-info-circle"></i></a>
+                                    {% if product.quantity_in_stock <= 0 %}
+                                        <a class="btn btn-secondary disabled" href="#" aria-disabled="true">Hết Hàng</a>
+                                    {% elif not user.is_superuser %}
+                                        <a href="/products/buy_now/{{product.product_id}}" class="btn btn-success">Mua Ngay <i class="fas fa-shopping-cart"></i></a>
+                                    {% endif %}
+                                    {% if user.is_superuser %}
+                                        <a href="/admin/products/{{product.product_id}}" class="btn btn-warning mt-2">Quản Lý <i class="fas fa-tasks fa-fw"></i></a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+{% endblock %}
+
+{% block script_extend %}
+        // Persistent filter status after submit
+        $('input[name="filter"]').on('change', function(){
+            localStorage.setItem('filter', this.id);
+        });
+    
+        if(localStorage.getItem("filter") !== null){
+            var id = localStorage.getItem("filter");
+            $('#'+id).prop('checked', true);
+        }
+        
+        // Persistent sort status after submit
+        $('input[name="sort"]').on('change', function(){
+            localStorage.setItem('sort', this.id);
+        });
+    
+        if(localStorage.getItem("sort") !== null){
+            var id = localStorage.getItem("sort");
+            $('#'+id).prop('checked', true);
+        }
+
+        // Remove empty field when submit
+        $("#advanced-filter").submit(function()
+        {
+            $(this).find('input[name]').filter(function ()
+                {
+                    return !this.value;
+                }).prop('disabled', true);
+
+            // ensure form still submits
+            return true; 
+        });
+{% endblock %}

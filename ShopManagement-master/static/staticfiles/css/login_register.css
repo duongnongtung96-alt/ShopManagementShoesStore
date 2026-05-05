@@ -1,0 +1,7 @@
+body {
+    background: url("../images/products_bg.png") fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+

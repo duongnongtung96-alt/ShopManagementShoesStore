@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+html, body {
+    background: url("{% static 'images/products_bg.png' %}") fixed !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+}
+</style>
+{% endblock %}

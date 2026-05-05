@@ -1,0 +1,142 @@
+body {
+    background: url("../images/products_bg.png") fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.container-fluid {
+    width: 90%;
+}
+
+.order-title {
+    background: #111827;
+    border: 1px solid #374151;
+}
+
+.order-title h1 {
+    color: #f8fafc;
+}
+
+.order-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 18px rgba(148, 163, 184, 0.15);
+}
+
+.order-item p {
+    color: #111827;
+}
+
+.order-item .product_id.info {
+    background: #f8fafc;
+    color: #111827;
+    border-radius: 0.5rem;
+    padding: 0.95rem;
+    border: 1px solid #e5e7eb;
+}
+
+.order-item .product_id.price {
+    background: #f8fafc;
+    color: #111827;
+    border-radius: 0.5rem;
+    padding: 0.95rem;
+    border: 1px solid #e5e7eb;
+}
+
+.order-item .product_id.info p,
+.order-item .product_id.price p {
+    margin: 0.35rem 0;
+}
+
+.order-item .product_id.info .btn,
+.order-item .product_id.price .text-primary {
+    color: #111827 !important;
+}
+
+.order-price {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+    padding: 1.3rem;
+}
+
+.order-price .card {
+    background: transparent;
+    border: none;
+}
+
+.order-price .card-title {
+    color: #111827;
+}
+
+.order-price .card-text {
+    color: #374151;
+}
+
+.order-price .text-danger {
+    color: #ef4444 !important;
+}
+
+.btn-success,
+.btn-danger,
+.btn-primary {
+    font-weight: 700;
+}
+
+.btn-success {
+    background-color: #0f766e;
+    border-color: #0f766e;
+}
+
+.btn-danger {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-success,
+.btn-danger,
+.btn-primary {
+    font-weight: 700;
+}
+
+.btn-success {
+    background-color: #0f766e;
+    border-color: #0f766e;
+}
+
+.btn-danger {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-success,
+.btn-danger,
+.btn-primary {
+    font-weight: 700;
+}
+
+.btn-success {
+    background-color: #0f766e;
+    border-color: #0f766e;
+}
+
+.btn-danger {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}

@@ -1,0 +1,168 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock %}
+
+{% block title_extend %}Thanh Toán{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <section>
+                <div class="row justify-content-center">
+                    <div class="customer p-4 mt-5 rounded rounded-lg col-8">
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label for="name">Tên Khách Hàng:</label>
+                                        <input id="name" name="name" maxlength="25" class="form-control" type="text" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Số Điện Thoại:</label>
+                                        <input id="phone" name="phone" maxlength="15" class="form-control" type="text" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="address">Địa Chỉ:</label>
+                                        <input id="address" name="address" maxlength="100" class="form-control" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="payment-card p-3 rounded rounded-lg bg-white border">
+                                        <h5 class="font-weight-bold">Phương thức thanh toán</h5>
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" {% if payment_method != 'transfer' %}checked{% endif %}>
+                                            <label class="form-check-label" for="payCash">Tiền mặt</label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="payTransfer" value="transfer" {% if payment_method == 'transfer' %}checked{% endif %}>
+                                            <label class="form-check-label" for="payTransfer">Chuyển khoản</label>
+                                        </div>
+                                        <div id="transfer-panel" class="transfer-panel d-none">
+                                            <div class="alert alert-info py-2">QR chỉ dùng để thử nghiệm. Mã sẽ hết hạn sau 30 giây.</div>
+                                            <p><strong>Ngân hàng:</strong> Demo Bank</p>
+                                            <p><strong>Số tài khoản:</strong> 123456789</p>
+                                            <p><strong>Chủ tài khoản:</strong> Cửa Hàng Giày Thử Nghiệm</p>
+                                            <p><strong>Số tiền:</strong> <span id="total-amount">{{ total|vnd }}</span></p>
+                                            <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                                            <div class="text-center">
+                                                <span class="font-weight-bold">QR còn hiệu lực:</span>
+                                                <span id="qr-countdown">30</span> giây
+                                            </div>
+                                            <div class="text-center mt-2">
+                                                <button type="button" id="refresh-qr" class="btn btn-outline-primary btn-sm">Tạo lại QR</button>
+                                            </div>
+                                            <div class="mt-3 small text-muted">
+                                                Quét mã QR cùng nội dung sau:
+                                                <pre id="qr-text" class="bg-light p-2 rounded">Demo payment: {{ total|vnd }}</pre>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4">
+                                            <button type="submit" class="btn btn-danger btn-block">Xác nhận đơn hàng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var payCash = document.getElementById('payCash');
+                var payTransfer = document.getElementById('payTransfer');
+                var transferPanel = document.getElementById('transfer-panel');
+                var countdownEl = document.getElementById('qr-countdown');
+                var qrcodeEl = document.getElementById('qrcode');
+                var refreshBtn = document.getElementById('refresh-qr');
+                var qrTextEl = document.getElementById('qr-text');
+                var qrCode = null;
+                var timerId = null;
+                var timeLeft = 30;
+
+                function getQrPayload() {
+                    var amount = document.getElementById('total-amount').innerText;
+                    var ref = 'TEST-REF-' + Date.now();
+                    var user = '{{ request.user.username|default:"khách" }}';
+                    return 'Demo chuyển khoản thử nghiệm\n' +
+                        'Người dùng: ' + user + '\n' +
+                        'Số tiền: ' + amount + '\n' +
+                        'Tham chiếu: ' + ref + '\n' +
+                        'Lưu ý: Chỉ dùng thử, không phải ngân hàng thật';
+                }
+
+                function renderQr() {
+                    if (qrCode) {
+                        qrcodeEl.innerHTML = '';
+                    }
+                    var payload = getQrPayload();
+                    qrTextEl.textContent = payload;
+                    qrCode = new QRCode(qrcodeEl, {
+                        text: payload,
+                        width: 220,
+                        height: 220,
+                    });
+                }
+
+                function resetTimer() {
+                    clearInterval(timerId);
+                    timeLeft = 30;
+                    countdownEl.textContent = timeLeft;
+                    timerId = setInterval(function () {
+                        timeLeft -= 1;
+                        countdownEl.textContent = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(timerId);
+                            countdownEl.textContent = '0';
+                            transferPanel.classList.add('border-danger');
+                            transferPanel.querySelector('.alert').textContent = 'QR đã hết hạn. Nhấn Tạo lại QR để làm mới mã.';
+                        }
+                    }, 1000);
+                }
+
+                function showTransferPanel() {
+                    transferPanel.classList.remove('d-none');
+                    renderQr();
+                    resetTimer();
+                }
+
+                function hideTransferPanel() {
+                    transferPanel.classList.add('d-none');
+                    clearInterval(timerId);
+                }
+
+                payCash.addEventListener('change', function () {
+                    if (this.checked) {
+                        hideTransferPanel();
+                    }
+                });
+
+                payTransfer.addEventListener('change', function () {
+                    if (this.checked) {
+                        showTransferPanel();
+                    }
+                });
+
+                refreshBtn.addEventListener('click', function () {
+                    renderQr();
+                    resetTimer();
+                    transferPanel.classList.remove('border-danger');
+                    transferPanel.querySelector('.alert').textContent = 'QR chỉ dùng để thử nghiệm. Mã sẽ hết hạn sau 30 giây.';
+                });
+
+                if (payTransfer.checked) {
+                    showTransferPanel();
+                }
+            });
+        </script>
+        
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+            {% endfor %}
+        {% endif %}
+{% endblock %}

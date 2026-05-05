@@ -1,0 +1,50 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+
+{% block title_extend %}Cửa Hàng Giày - Trang Chủ{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <div class="jumbotron rounded-lg rounded mt-3">
+                <h1 class="display-4 text-white">Chào Mừng Đến Cửa Hàng Giày</h1>
+                <p class="lead text-white">Thưởng Thức Mua Sắm!</p>
+                <hr class="my-4 text-info">
+                <p class="text-white">Hãy Khám Phá Bộ Sưu Tập Giày Của Chúng Tôi.</p>
+            </div>
+        </div>
+
+        <div class="container mt-5">
+            <h2 class="text-center text-light mb-4">Sản Phẩm Nổi Bật</h2>
+            <div class="row justify-content-center">
+                {% for product in products %}
+                <div class="col-lg-4 col-md-6 col-sm-12 my-3">
+                    <div class="card bg-dark text-light">
+                        {% if product.product_image %}
+                            <img src="{{product.product_image.url}}" class="card-img-top" alt="{{product.product_name}}">
+                        {% else %}
+                            <img src="{% static 'images/shop_logo.png' %}" class="card-img-top" alt="No image">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{product.product_name}}</h5>
+                            <p class="card-text">Giá: {{product.sell_price|vnd}}</p>
+                            <a href="/products/viewproduct/{{product.product_id}}" class="btn btn-primary">Xem Chi Tiết</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-4">
+                <a href="/products/" class="btn btn-info">Xem Tất Cả Sản Phẩm</a>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+            {% endfor %}
+        {% endif %}
+{% endblock %}

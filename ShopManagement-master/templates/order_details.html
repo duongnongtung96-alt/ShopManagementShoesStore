@@ -1,0 +1,231 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+
+{% block title_extend %}Chi Tiết Đơn Hàng{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/orderdetails.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container-fluid mt-5 pt-3">
+            <section id="header">
+                <h1 class="text-light pl-5">Đơn Hàng <i class="fas fa-scroll"></i></h1>
+                <hr class="my-4 border-light">
+            </section>
+
+            <section id="products_list">
+                <div class="row justify-content-center my-5">
+                    <div class="col-md-8 col-12">
+                        {% for item in order_items %}
+                            <div class="row order-item my-1 p-2 rounded rounded-lg">
+                                <div class="col-md-2 col-12 text-center">
+                                    {% if item.product.product_image %}
+                                        <img src="{{ item.product.product_image.url }}" class="img-thumbnail img-responsive" alt="...">
+                                    {% else %}
+                                        <img src="{% static 'images/shop_logo.png' %}" class="img-thumbnail img-responsive" alt="...">
+                                    {% endif %}
+                                </div>
+                                <div class="col-1">
+                                    <p>#{{ item.product.product_id }}</p>
+                                </div>
+                                <div class="col-md-9 col-11">
+                                    <div class="row">
+                                        <div class="col-md-7 col-6.product_id.info">
+                                            <p class="font-weight-bold">{{ item.product.product_name }}</p>
+                                            <p>Giá mỗi cái: <span class="text-info">{{ item.product.sell_price|vnd }}</span></p>
+                                            <a href="/products/viewproduct/{{ item.product.product_id }}" class="btn btn-primary">Chi Tiết <i class="fas fa-info-circle"></i></a>
+                                        </div>
+                                        <div class="col-md-5 col-6.product_id.price">
+                                            <p>Số Lượng: <span class="text-primary font-weight-bold">{{ item.quantity }}</span></p>
+                                            <p>Tổng: <span class="text-info font-weight-bold">{{ item.total|vnd }}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-3 ml-md-2 col-12 order-price rounded rounded-lg">
+                        <div class="col-12 card">
+                            <div class="card-body">
+                                <h5 class="card-title font-weight-bold h4">Trạng Thái:
+                                    {% if order.status == 'Confirmed' %}
+                                        <span class="text-success">Đã Xác Nhận</span>
+                                    {% elif order.status == 'Pending' %}
+                                        <span class="text-warning">Đang Chờ</span>
+                                    {% elif order.status == 'Canceled' %}
+                                        <span class="text-danger">Đã Hủy</span>
+                                    {% endif %}
+                                </h5>
+                                <p class="card-text mb-3"><strong>Thanh Toán:</strong>
+                                    {% if order.payment_status == 'Đã thanh toán' %}
+                                        <span class="text-success">Đã thanh toán</span>
+                                    {% else %}
+                                        <span class="text-warning">{{ order.payment_status }}</span>
+                                    {% endif %}
+                                </p>
+                                <hr class="my-4">
+                                <p class="card-text"><strong>Tổng số mặt hàng:</strong> {{ total_items }}</p>
+                                <p class="card-text"><strong>Tổng giá:</strong> <span class="text-danger h4">{{ order.total_price|vnd }}</span></p>
+
+                                {% if not user.is_superuser and order.payment_status == 'Chờ thanh toán' and order.status != 'Canceled' %}
+                                <hr class="my-4">
+                                <h6 class="font-weight-bold">Thanh Toán:</h6>
+                                <p class="mb-1">Trạng thái thanh toán: <span class="text-warning">{{ order.payment_status }}</span></p>
+                                <form action="{% url 'update_payment' order.order_id %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" checked>
+                                        <label class="form-check-label" for="payCash">Tiền mặt</label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="payTransfer" value="transfer">
+                                        <label class="form-check-label" for="payTransfer">Chuyển khoản</label>
+                                    </div>
+                                    <div id="transfer-panel" class="transfer-panel d-none">
+                                        <div class="alert alert-info py-2">QR chỉ dùng để thử nghiệm. Mã sẽ hết hạn sau 30 giây.</div>
+                                        <p><strong>Ngân hàng:</strong> Demo Bank</p>
+                                        <p><strong>Số tài khoản:</strong> 123456789</p>
+                                        <p><strong>Chủ tài khoản:</strong> Cửa Hàng Giày Thử Nghiệm</p>
+                                        <p><strong>Số tiền:</strong> <span id="total-amount">{{ order.total_price|vnd }}</span></p>
+                                        <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                                        <div class="text-center">
+                                            <span class="font-weight-bold">QR còn hiệu lực:</span>
+                                            <span id="qr-countdown">30</span> giây
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <button type="button" id="refresh-qr" class="btn btn-outline-primary btn-sm">Tạo lại QR</button>
+                                        </div>
+                                        <div class="mt-3 small text-muted">
+                                            Quét mã QR cùng nội dung sau:
+                                            <pre id="qr-text" class="bg-light p-2 rounded">Demo payment: {{ order.total_price|vnd }}</pre>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <button type="submit" class="btn btn-danger btn-block">Xác nhận thanh toán</button>
+                                    </div>
+                                </form>
+                                {% endif %}
+
+                                {% if order.status != 'Canceled' %}
+                                    <div class="d-flex justify-content-between mt-3">
+                                        {% if user.is_superuser and order.status == 'Pending' %}
+                                            {% if order.payment_status == 'Đã thanh toán' %}
+                                                <a href="/products/orders/confirm/{{ order.order_id }}" class="btn btn-success">Xác Nhận <i class="fas fa-check"></i></a>
+                                            {% else %}
+                                                <button type="button" class="btn btn-secondary" disabled>Chưa thanh toán</button>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if user.is_superuser %}
+                                            <a href="/products/orders/cancel/{{ order.order_id }}" class="btn btn-danger">Hủy <i class="fas fa-times"></i></a>
+                                        {% elif user.is_authenticated and order.user == user.username %}
+                                            <a href="/products/orders/cancel/{{ order.order_id }}" class="btn btn-danger">Hủy <i class="fas fa-times"></i></a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+{% endblock %}
+
+{% block script_extend %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var payCash = document.getElementById('payCash');
+        var payTransfer = document.getElementById('payTransfer');
+        var transferPanel = document.getElementById('transfer-panel');
+        var countdownEl = document.getElementById('qr-countdown');
+        var qrcodeEl = document.getElementById('qrcode');
+        var refreshBtn = document.getElementById('refresh-qr');
+        var qrTextEl = document.getElementById('qr-text');
+        var qrCode = null;
+        var timerId = null;
+        var timeLeft = 30;
+
+        function getQrPayload() {
+            var amount = document.getElementById('total-amount').innerText;
+            var ref = 'TEST-REF-' + Date.now();
+            var user = '{{ request.user.username|default:"khách" }}';
+            return 'Demo chuyển khoản thử nghiệm\n' +
+                'Người dùng: ' + user + '\n' +
+                'Số tiền: ' + amount + '\n' +
+                'Tham chiếu: ' + ref + '\n' +
+                'Lưu ý: Chỉ dùng thử, không phải ngân hàng thật';
+        }
+
+        function renderQr() {
+            if (qrCode) {
+                qrcodeEl.innerHTML = '';
+            }
+            var payload = getQrPayload();
+            qrTextEl.textContent = payload;
+            qrCode = new QRCode(qrcodeEl, {
+                text: payload,
+                width: 220,
+                height: 220,
+            });
+        }
+
+        function resetTimer() {
+            clearInterval(timerId);
+            timeLeft = 30;
+            countdownEl.textContent = timeLeft;
+            timerId = setInterval(function () {
+                timeLeft -= 1;
+                countdownEl.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    countdownEl.textContent = '0';
+                    transferPanel.classList.add('border-danger');
+                    transferPanel.querySelector('.alert').textContent = 'QR đã hết hạn. Nhấn Tạo lại QR để làm mới mã.';
+                }
+            }, 1000);
+        }
+
+        function showTransferPanel() {
+            transferPanel.classList.remove('d-none');
+            renderQr();
+            resetTimer();
+        }
+
+        function hideTransferPanel() {
+            transferPanel.classList.add('d-none');
+            clearInterval(timerId);
+        }
+
+        if (payCash) {
+            payCash.addEventListener('change', function () {
+                if (this.checked) {
+                    hideTransferPanel();
+                }
+            });
+        }
+
+        if (payTransfer) {
+            payTransfer.addEventListener('change', function () {
+                if (this.checked) {
+                    showTransferPanel();
+                }
+            });
+        }
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function () {
+                renderQr();
+                resetTimer();
+                transferPanel.classList.remove('border-danger');
+                transferPanel.querySelector('.alert').textContent = 'QR chỉ dùng để thử nghiệm. Mã sẽ hết hạn sau 30 giây.';
+            });
+        }
+
+        if (payTransfer && payTransfer.checked) {
+            showTransferPanel();
+        }
+    });
+</script>
+{% endblock %}

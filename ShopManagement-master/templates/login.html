@@ -1,0 +1,42 @@
+{% extends 'base/navbar.html' %}
+{% load static %}
+
+{% block title_extend %}Đăng Nhập{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/login_register.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <div class="row justify-content-center mt-5">
+                <div class="col-12 col-md-6 p-5 bg-light">
+                    <form action="" method="POST">
+
+                        {% csrf_token %}
+
+                        <div class="form-group">
+                            <label for="username">Tên Đăng Nhập</label>
+                            <input type="text" class="form-control" id="username" name="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Mật Khẩu</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Đăng Nhập</button>
+                        <input type="hidden" name="next" value="{{next}}">
+                        <p class="form-text text-muted">Chưa có tài khoản? <a href="/accounts/register">Tạo một cái</a> ngay.</p>
+                    </form>
+                </div>
+            </div>
+            {% if messages %}
+            <div class="row justify-content-center mt-5">
+                <div class="col-12 col-md-6 p-3 border rounded-lg bg-danger">
+                    {% for message in messages %}
+                        <p class="text-light"><i class="fas fa-info-circle"></i> {{message}}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+{% endblock %}

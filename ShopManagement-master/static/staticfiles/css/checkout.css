@@ -1,0 +1,32 @@
+body {
+    background: url("../images/products_bg.png") fixed;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.customer {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.payment-card {
+    background-color: #f8fafc;
+}
+
+.transfer-panel {
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    background-color: #ffffff;
+}
+
+#qrcode {
+    padding: 1rem;
+    background-color: #f3f4f6;
+    border-radius: 0.75rem;
+}
+
+#qr-text {
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+}

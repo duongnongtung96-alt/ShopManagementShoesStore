@@ -1,0 +1,147 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+{% load mathfilters %}
+
+{% block title_extend %}Cửa Hàng Giày - Giỏ Hàng{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container-fluid mt-5 pt-3">
+            <section id="header">
+                <h1 class="text-light pl-5">Giỏ Hàng <i class="fas fa-shopping-cart"></i></h1>
+                <hr class="my-4 border-light">
+            </section>
+
+            <section id="products_list">
+                {% if changed %}
+                <div class="row justify-content-center my-5">
+                    <div class="col-md-8 col-12 bg-danger rounded rounded-lg">
+                        <p class="text-light m-2"><i class="fas fa-exclamation-circle"></i>
+                            Số lượng hàng tồn kho ít hơn một số sản phẩm trong giỏ hàng của bạn! Vui lòng làm mới trang để cập nhật thay đổi!</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row justify-content-center my-5">
+                    <div class="col-md-8 col-12">
+                        <form class="cart" action="/products/order_from_cart/" method="post" id="order-cart-form">
+                            {% csrf_token %}
+                            <div class="form-group mb-3">
+                                <div class="custom-control custom-checkbox text-light">
+                                    <input type="checkbox" class="custom-control-input" id="select-all-products">
+                                    <label class="custom-control-label" for="select-all-products">Chọn tất cả sản phẩm</label>
+                                </div>
+                            </div>
+                            {% for product in cart %}
+                                <div class="row cart-item my-1 p-2 rounded rounded-lg align-items-center">
+                                    <div class="col-md-1 col-2 text-center">
+                                        <input type="checkbox" class="product-select" name="selected_products" value="{{ product.product_id.product_id }}" checked>
+                                    </div>
+                                    <div class="col-md-2 col-4 text-center">
+                                        {% if product.product_id.product_image %}
+                                            <img src="{{product.product_id.product_image.url}}" class="img-thumbnail img-responsive" alt="...">
+                                        {% else %}
+                                            <img src="{% static 'images/shop_logo.png' %}" class="img-thumbnail img-responsive" alt="...">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2 col-12">
+                                        <p class="font-weight-bold">#{{product.product_id.product_id}}</p>
+                                    </div>
+                                    <div class="col-md-5 col-12">
+                                        <div class="row">
+                                            <div class="col-md-7 col-12 product-info">
+                                                <p class="font-weight-bold mb-1">{{product.product_id.product_name}}</p>
+                                                <p class="mb-1">Giá mỗi cái: <span class="text-info">{{product.product_id.sell_price|vnd}}</span></p>
+                                                <a href="/products/viewproduct/{{product.product_id.product_id}}" class="btn btn-primary btn-sm">Chi Tiết</a>
+                                                <a href="/products/cart/delete/{{product.product_id.product_id}}" class="btn btn-danger btn-sm">Xóa</a>
+                                            </div>
+                                            <div class="col-md-5 col-12 text-right">
+                                                <p>Số Lượng: <span class="text-primary font-weight-bold">{{product.quantity}}</span></p>
+                                                <p>Tổng: <span class="text-info font-weight-bold product-total" data-total="{{product.quantity|mul:product.product_id.sell_price}}">{{product.quantity|mul:product.product_id.sell_price|vnd}}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    <div class="col-md-3 ml-md-2 col-12 cart-price rounded rounded-lg">
+                        <div class="col-12 card">
+                            <div class="card-body">
+                                <h5 class="card-title font-weight-bold h4">Tóm Tắt:</h5>
+                                <hr class="my-4">
+                                <p class="card-text text-right">Tổng Giá đã chọn: <span class="text-danger h3" id="selected-total">{{total|vnd}}</span></p>
+                                {% if total == 0 %}
+                                    <button type="button" class="btn btn-info float-right disabled">Đặt Hàng <i class="fas fa-shopping-cart"></i></button>
+                                {% elif changed %}
+                                    <a href="{{request.path}}" class="btn btn-warning float-right">Làm Mới <i class="fas fa-redo"></i></a>
+                                {% else %}
+                                    <div class="form-group">
+                                        <label for="name" class="font-weight-bold">Tên khách hàng</label>
+                                        <input id="name" name="name" class="form-control" type="text" maxlength="25" required form="order-cart-form">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone" class="font-weight-bold">Số điện thoại</label>
+                                        <input id="phone" name="phone" class="form-control" type="text" maxlength="15" required form="order-cart-form">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="address" class="font-weight-bold">Địa chỉ</label>
+                                        <input id="address" name="address" class="form-control" type="text" maxlength="100" required form="order-cart-form">
+                                    </div>
+                                    <button type="submit" class="btn btn-info float-right" form="order-cart-form">Đặt Hàng <i class="fas fa-shopping-cart"></i></button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+{% endblock %}
+
+{% block script_extend %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('select-all-products');
+        const checkboxes = document.querySelectorAll('.product-select');
+        const selectedTotal = document.getElementById('selected-total');
+
+        function formatVnd(value) {
+            return value.toLocaleString('vi-VN') + ' VND';
+        }
+
+        function updateTotal() {
+            let total = 0;
+            checkboxes.forEach(function(input) {
+                if (input.checked) {
+                    const row = input.closest('.cart-item');
+                    const totalElem = row.querySelector('.product-total');
+                    total += parseInt(totalElem.dataset.total || 0, 10);
+                }
+            });
+            selectedTotal.textContent = formatVnd(total);
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                checkboxes.forEach(function(input) {
+                    input.checked = selectAll.checked;
+                });
+                updateTotal();
+            });
+        }
+
+        checkboxes.forEach(function(input) {
+            input.addEventListener('change', function() {
+                if (!this.checked && selectAll) {
+                    selectAll.checked = false;
+                }
+                updateTotal();
+            });
+        });
+
+        updateTotal();
+    });
+</script>
+{% endblock %}

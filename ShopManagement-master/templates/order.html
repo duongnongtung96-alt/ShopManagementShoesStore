@@ -1,0 +1,176 @@
+{% extends 'base/navbar.html' %}
+{% load static currency_tags %}
+{% load mathfilters %}
+
+{% block title_extend %}Cửa Hàng Giày - Đơn Hàng{% endblock %}
+
+{% block head_extend %}
+        <link rel="stylesheet" href="{% static 'css/order.css' %}">
+{% endblock %}
+
+{% block content %}
+        <!-- Clear input choice if enter products/orders/ (without filter request) -->
+        {% if request.path == '/products/orders/' %}
+            <script>localStorage.removeItem("status");</script>
+        {% endif %}
+
+        <div class="container-fluid mt-5 pt-3">
+            <section id="header">
+                <h1 class="text-light pl-5">Đơn Hàng <i class="fas fa-scroll"></i></h1>
+                <hr class="my-4 border-light">
+            </section>
+
+
+            {% if user.is_superuser %}
+            <section class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <h6 class="card-title">Tổng Đơn</h6>
+                                <p class="card-text display-4">{{ total_orders }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <h6 class="card-title">Tổng Doanh Thu</h6>
+                                <p class="card-text display-4">{{ total_revenue|vnd }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <h6 class="card-title">Sản Phẩm Đã Bán</h6>
+                                <p class="card-text display-4">{{ total_products }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <section id="products_filter">
+                <div class="row mx-5 my-2 rounded rounded-lg">
+                    <form id="advanced-filter" class="form-inline my-2 my-lg-0" action="" method="get">
+            
+                        <div id="filter" class="form-group bg-success text-light mx-2 p-2 rounded rounded-lg">
+                            <label for="status" class="font-weight-bold mx-sm-2"><span class="text-dark">Lọc: </span></label>
+                            <input id="status0" class="form-control mx-sm-2" type="radio" name="status" value="">Không
+                            <input id="status1" class="form-control mx-sm-2" type="radio" name="status" value="confirmed">Đã Xác Nhận
+                            <input id="status2" class="form-control mx-sm-2" type="radio" name="status" value="pending">Đang Chờ
+                            <input id="status3" class="form-control mx-sm-2" type="radio" name="status" value="cancelled">Đã Hủy
+                        </div>
+                        
+                        <button class="btn btn-warning m-sm-2" type="submit"><i class="fas fa-filter fa-fw"></i> Áp Dụng</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="products_list">
+                <div class="row justify-content-center my-5">
+                    <div class="col-12">
+                        {% if orders %}
+                            <div class="order-title my-2 p-2 rounded rounded-lg">
+                                <div>
+                                    <p class="text-center text-light font-weight-bold">ID</p>
+                                </div>
+
+                                <div class="border-left">
+                                    <p class="text-center text-light font-weight-bold">Tên (Số Điện Thoại)</p>
+                                </div>
+                                
+                                <div class="border-left">
+                                    <p class="text-center text-light font-weight-bold">Địa Chỉ</p>
+                                </div>
+
+                                <div class="border-left">
+                                    <p class="text-center text-light font-weight-bold">Giá</p>
+                                </div>
+
+                                <div class="border-left">
+                                    <p class="text-center text-light font-weight-bold">Trạng Thái</p>
+                                </div>
+
+                                <div class="border-left">
+                                    <p class="text-center text-light font-weight-bold">Thanh Toán</p>
+                                </div>
+                            </div>
+                            {% for order in orders %}
+                                <div class="order-item my-1 p-2 rounded rounded-lg position-relative">
+                                    <div>
+                                        <p class="order-id text-center">#{{order.order_id}}</p>
+                                    </div>
+
+                                    <div class="border-left border-dark">
+                                        <p class="order-customer">{{order.customer_name}} <span class="order-phone">({{order.phone_number}})</span></p>
+                                    </div>
+                                    
+                                    <div class="border-left border-dark">
+                                        <p class="order-address">{{order.address}}</p>
+                                    </div>
+
+                                    <div class="border-left border-dark">
+                                        <p class="order-price text-center">{{order.total_price|vnd}}</p>
+                                    </div>
+
+                                    <div class="border-left border-dark">
+                                        {% if order.status == 'Confirmed' %}
+                                        <p class="text-center text-success">Đã Xác Nhận</p>
+                                        {% elif order.status == 'Pending' %}
+                                        <p class="text-center text-warning">Đang Chờ</p>
+                                        {% elif order.status == 'Canceled' %}
+                                        <p class="text-center text-danger">Đã Hủy</p>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="border-left border-dark">
+                                        {% if order.payment_status == 'Đã thanh toán' %}
+                                        <p class="text-center text-success">{{ order.payment_status }}</p>
+                                        {% else %}
+                                        <p class="text-center text-warning">{{ order.payment_status }}</p>
+                                        {% endif %}
+                                    </div>
+
+                                    <a href="/products/orders/details/{{order.order_id}}" class="stretched-link"></a>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="row justify-content-center my-5">
+                                <div class="col-md-8 col-12 bg-danger rounded rounded-lg">
+                                    <p class="text-light m-2"><i class="fas fa-exclamation-circle"></i>
+                                        Bạn chưa có đơn hàng nào!</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+        </div>
+{% endblock %}
+
+{% block script_extend %}
+        // Persistent filter status after submit
+        $('input[name="status"]').on('change', function(){
+            localStorage.setItem('status', this.id);
+        });
+    
+        if(localStorage.getItem("status") !== null){
+            var id = localStorage.getItem("status");
+            $('#'+id).prop('checked', true);
+        }
+        
+        // Remove empty field when submit
+        $("#advanced-filter").submit(function()
+        {
+            $(this).find('input[name]').filter(function ()
+                {
+                    return !this.value;
+                }).prop('disabled', true);
+
+            // ensure form still submits
+            return true; 
+        });
+{% endblock %}

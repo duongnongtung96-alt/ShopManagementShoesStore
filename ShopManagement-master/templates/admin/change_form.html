@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+html, body, #container, #content, .content-main {
+    background: url("{% static 'images/products_bg.png' %}") fixed !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+}
+</style>
+{% endblock %}
